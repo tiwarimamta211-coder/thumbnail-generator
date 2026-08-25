@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Thumbnail Generator | IncomeAIHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cyan:#00fff2;
+  --purple:#b026ff;
+  --green:#00ff9d;
+  --bg0:#05060a;
+  --bg1:#0b0e18;
+  --bg2:#121729;
+  --panel:#0e1220;
+  --border:rgba(0,255,242,0.25);
+  --text:#d9e6ff;
+  --muted:#7d8bab;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--bg0);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  background:
+    linear-gradient(rgba(0,255,242,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,242,0.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+  z-index:1;
+  opacity:0.4;
+}
+.wrap{position:relative; z-index:2; max-width:1500px; margin:0 auto; padding:18px;}
+
+header{
+  text-align:center;
+  padding:22px 10px 26px;
+}
+header h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(1.5rem,4vw,2.4rem);
+  font-weight:900;
+  letter-spacing:1px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple),var(--green));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 30px rgba(0,255,242,0.25);
+}
+header p{
+  color:var(--muted);
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.85rem;
+  margin-top:6px;
+  letter-spacing:0.5px;
+}
+
+.adslot{
+  border:1px dashed var(--border);
+  background:rgba(255,255,255,0.02);
+  color:var(--muted);
+  text-align:center;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.75rem;
+  padding:10px;
+  border-radius:8px;
+  margin:14px 0;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:300px 1fr 300px;
+  gap:16px;
+  align-items:start;
+}
+@media (max-width:1100px){
+  .layout{grid-template-columns:1fr;}
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 0 25px rgba(0,255,242,0.04) inset;
+}
+.panel h2{
+  font-family:'Orbitron',sans-serif;
+  font-size:0.9rem;
+  color:var(--cyan);
+  letter-spacing:1px;
+  margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+}
+.field{margin-bottom:14px;}
+.field label{
+  display:block;
+  font-size:0.8rem;
+  color:var(--muted);
+  margin-bottom:5px;
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:0.5px;
+}
+select, input[type=text], input[type=number], input[type=color], input[type=range], textarea{
+  width:100%;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:6px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:0.95rem;
+  outline:none;
+}
+select:focus, input:focus, textarea:focus{border-color:var(--cyan); box-shadow:0 0 8px rgba(0,255,242,0.25);}
+input[type=color]{padding:2px; height:36px; cursor:pointer;}
+input[type=range]{padding:0; height:20px; accent-color:var(--cyan);}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+
+.btn{
+  cursor:pointer;
+  border:1px solid var(--cyan);
+  background:transparent;
+  color:var(--cyan);
+  font-family:'Orbitron',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.5px;
+  padding:9px 12px;
+  border-radius:6px;
+  transition:all .2s;
+  text-align:center;
+}
+.btn:hover{background:rgba(0,255,242,0.12); box-shadow:0 0 14px rgba(0,255,242,0.3);}
+.btn.purple{border-color:var(--purple); color:var(--purple);}
+.btn.purple:hover{background:rgba(176,38,255,0.12); box-shadow:0 0 14px rgba(176,38,255,0.3);}
+.btn.green{border-color:var(--green); color:var(--green);}
+.btn.green:hover{background:rgba(0,255,157,0.12); box-shadow:0 0 14px rgba(0,255,157,0.3);}
+.btn.full{width:100%; display:block; margin-bottom:8px;}
+.btn.big{padding:14px; font-size:0.85rem;}
+.btn:disabled{opacity:0.4; cursor:not-allowed;}
+
+.btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+.btn-row .btn{flex:1; min-width:70px;}
+
+.chip-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.chip{
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:var(--bg2);
+  color:var(--text);
+  font-size:0.78rem;
+  padding:8px 6px;
+  border-radius:6px;
+  text-align:center;
+  font-family:'Share Tech Mono',monospace;
+}
+.chip.active, .chip:hover{border-color:var(--green); color:var(--green); box-shadow:0 0 10px rgba(0,255,157,0.2);}
+
+/* Canvas area */
+.canvas-area{
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.canvas-shell{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+#canvasWrap{
+  position:relative;
+  max-width:100%;
+  border:1px solid var(--border);
+  box-shadow:0 0 30px rgba(0,255,242,0.08);
+  background:
+    linear-gradient(45deg,#1a1f2e 25%,transparent 25%),
+    linear-gradient(-45deg,#1a1f2e 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#1a1f2e 75%),
+    linear-gradient(-45deg,transparent 75%,#1a1f2e 75%);
+  background-size:20px 20px;
+  background-position:0 0,0 10px,10px -10px,-10px 0px;
+}
+#thumbCanvas{display:block; max-width:100%; height:auto; cursor:default;}
+.canvas-tools{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+
+.layers-list{max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+.layer-item{
+  display:flex; align-items:center; gap:8px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:6px; padding:6px 8px; font-size:0.8rem;
+  cursor:pointer;
+}
+.layer-item.selected{border-color:var(--cyan); box-shadow:0 0 8px rgba(0,255,242,0.25);}
+.layer-item span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.layer-item button{
+  background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.9rem;
+}
+.layer-item button:hover{color:#ff5566;}
+
+.tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+.tab-btn{
+  flex:1; min-width:60px; text-align:center;
+  padding:8px 4px; font-family:'Orbitron',sans-serif; font-size:0.65rem;
+  border:1px solid var(--border); border-radius:6px; cursor:pointer; color:var(--muted);
+}
+.tab-btn.active{color:var(--cyan); border-color:var(--cyan); background:rgba(0,255,242,0.08);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.hint{
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.72rem; color:var(--muted); line-height:1.5; margin-top:6px;
+}
+.emoji-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:4px; max-height:150px; overflow-y:auto;}
+.emoji-grid button{
+  background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+  font-size:1.2rem; padding:6px 0; cursor:pointer;
+}
+.emoji-grid button:hover{border-color:var(--green);}
+
+.guide{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  margin-top:20px;
+}
+.guide h2{
+  font-family:'Orbitron',sans-serif; color:var(--purple); font-size:1rem; margin-bottom:12px;
+}
+.guide ol{padding-left:20px; line-height:1.9; color:var(--text); font-size:0.95rem;}
+.guide li strong{color:var(--cyan);}
+
+footer{
+  text-align:center; padding:26px 10px; color:var(--muted);
+  font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+}
+
+::-webkit-scrollbar{width:6px; height:6px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>⚡ AI THUMBNAIL GENERATOR</h1>
+    <p>IncomeAIHub • Create scroll-stopping YouTube &amp; Social thumbnails — 100% free, in your browser</p>
+  </header>
+
+  <div class="adslot">Advertisement Space (728x90) — AdSense Slot</div>
+
+  <div class="layout">
+
+    <!-- LEFT PANEL: Setup + Background + Templates -->
+    <div class="panel">
+      <h2>📐 Canvas Setup</h2>
+      <div class="field">
+        <label>Aspect Ratio / Platform</label>
+        <select id="aspectSelect">
+          <option value="1280x720">YouTube Thumbnail (1280×720)</option>
+          <option value="1080x1080">Instagram Post (1080×1080)</option>
+          <option value="1080x1920">Instagram/YT Story-Reel (1080×1920)</option>
+          <option value="1200x630">Facebook Post (1200×630)</option>
+          <option value="1500x500">Twitter/X Header (1500×500)</option>
+          <option value="custom">Custom Size</option>
+        </select>
+      </div>
+      <div class="row2" id="customSizeRow" style="display:none;">
+        <div class="field"><label>Width</label><input type="number" id="customW" value="1280"></div>
+        <div class="field"><label>Height</label><input type="number" id="customH" value="720"></div>
+      </div>
+
+      <h2>🎨 Background</h2>
+      <div class="tabs">
+        <div class="tab-btn active" data-bgtab="color">Solid</div>
+        <div class="tab-btn" data-bgtab="gradient">Gradient</div>
+        <div class="tab-btn" data-bgtab="image">Image</div>
+      </div>
+
+      <div class="tab-content active" data-bgpanel="color">
+        <div class="field"><label>Background Color</label><input type="color" id="bgColor" value="#0b0e18"></div>
+      </div>
+      <div class="tab-content" data-bgpanel="gradient">
+        <div class="row2">
+          <div class="field"><label>Color 1</label><input type="color" id="gradColor1" value="#00fff2"></div>
+          <div class="field"><label>Color 2</label><input type="color" id="gradColor2" value="#b026ff"></div>
+        </div>
+        <div class="field">
+          <label>Angle: <span id="gradAngleVal">135</span>°</label>
+          <input type="range" id="gradAngle" min="0" max="360" value="135">
+        </div>
+      </div>
+      <div class="tab-content" data-bgpanel="image">
+        <div class="field">
+          <label>Upload Background Image</label>
+          <input type="file" id="bgImageInput" accept="image/*">
+        </div>
+        <div class="field">
+          <label>Fit Mode</label>
+          <select id="bgFitMode">
+            <option value="cover">Cover (fill &amp; crop)</option>
+            <option value="contain">Contain (fit inside)</option>
+            <option value="stretch">Stretch</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Brightness: <span id="brightVal">100</span>%</label>
+        <input type="range" id="brightRange" min="30" max="170" value="100">
+      </div>
+      <div class="field">
+        <label>Contrast: <span id="contrastVal">100</span>%</label>
+        <input type="range" id="contrastRange" min="30" max="170" value="100">
+      </div>
+      <div class="field">
+        <label>Saturation: <span id="satVal">100</span>%</label>
+        <input type="range" id="satRange" min="0" max="200" value="100">
+      </div>
+      <div class="field">
+        <label>Blur: <span id="blurVal">0</span>px</label>
+        <input type="range" id="blurRange" min="0" max="15" value="0">
+      </div>
+      <div class="field">
+        <label>Dark Overlay: <span id="overlayVal">0</span>%</label>
+        <input type="range" id="overlayRange" min="0" max="80" value="0">
+      </div>
+
+      <h2>⚡ Quick Templates</h2>
+      <div class="chip-grid">
+        <div class="chip" data-tpl="alert">🔴 Bold Alert</div>
+        <div class="chip" data-tpl="neon">🟣 Gaming Neon</div>
+        <div class="chip" data-tpl="clean">⚪ Tutorial Clean</div>
+        <div class="chip" data-tpl="vlog">🟢 Vlog Warm</div>
+      </div>
+    </div>
+
+    <!-- CENTER: CANVAS -->
+    <div class="canvas-area">
+      <div class="canvas-shell">
+        <div id="canvasWrap">
+          <canvas id="thumbCanvas" width="1280" height="720"></canvas>
+        </div>
+        <div class="canvas-tools">
+          <button class="btn" id="btnUndo">↩ Undo</button>
+          <button class="btn" id="btnRedo">↪ Redo</button>
+          <button class="btn purple" id="btnDeselect">◌ Deselect</button>
+          <button class="btn green big" id="btnDownload">⬇ Download PNG</button>
+        </div>
+      </div>
+
+      <div class="canvas-shell">
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:0.9rem;color:var(--cyan);margin-bottom:8px;">🗂️ Layers</h2>
+        <div class="layers-list" id="layersList"></div>
+        <div class="hint">Click a layer to select · Drag on canvas to move · Use panel on right to edit style</div>
+      </div>
+
+      <div class="canvas-shell">
+        <div class="btn-row" style="width:100%;">
+          <button class="btn full" id="btnSaveProject">💾 Save Project</button>
+          <button class="btn full purple" id="btnLoadProject">📂 Load Project</button>
+          <button class="btn full" id="btnClearAll" style="border-color:#ff5566;color:#ff5566;">🗑 Clear All</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Add elements + Edit selected -->
+    <div class="panel">
+      <h2>➕ Add Elements</h2>
+      <div class="field">
+        <label>Text Content</label>
+        <textarea id="newTextInput" rows="2" placeholder="YOUR TITLE HERE">YOUR TITLE HERE</textarea>
+      </div>
+      <button class="btn full green" id="btnAddText">+ Add Text Layer</button>
+
+      <div class="field" style="margin-top:10px;">
+        <label>Upload Image / Logo / PNG</label>
+        <input type="file" id="imgLayerInput" accept="image/*">
+      </div>
+
+      <div class="field">
+        <label>Quick Shapes</label>
+        <div class="btn-row">
+          <button class="btn" data-shape="rect">▭ Box</button>
+          <button class="btn" data-shape="circle">◯ Circle</button>
+          <button class="btn" data-shape="ribbon">🎗 Banner</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Emoji / Stickers</label>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+
+      <h2 style="margin-top:16px;">🛠 Edit Selected Layer</h2>
+      <div id="noSelectionMsg" class="hint">No layer selected. Click a layer on canvas or in the Layers list.</div>
+
+      <div id="editPanel" style="display:none;">
+        <!-- TEXT controls -->
+        <div id="textControls">
+          <div class="field"><label>Edit Text</label><textarea id="editTextContent" rows="2"></textarea></div>
+          <div class="field">
+            <label>Font</label>
+            <select id="editFont">
+              <option value="Orbitron">Orbitron (Techno)</option>
+              <option value="Rajdhani">Rajdhani (Clean)</option>
+              <option value="'Share Tech Mono'">Share Tech Mono</option>
+              <option value="Arial">Arial</option>
+              <option value="Impact">Impact (Bold Poster)</option>
+              <option value="Georgia">Georgia (Serif)</option>
+            </select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Size</label><input type="number" id="editFontSize" value="80"></div>
+            <div class="field"><label>Color</label><input type="color" id="editTextColor" value="#00fff2"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Stroke Color</label><input type="color" id="editStrokeColor" value="#000000"></div>
+            <div class="field"><label>Stroke Width</label><input type="number" id="editStrokeWidth" value="0"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn chip" id="toggleBold">B Bold</button>
+            <button class="btn chip" id="toggleItalic">I Italic</button>
+            <button class="btn chip" id="toggleShadow">◐ Glow/Shadow</button>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label>Text Align</label>
+            <select id="editAlign">
+              <option value="left">Left</option>
+              <option value="center" selected>Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SHAPE controls -->
+        <div id="shapeControls" style="display:none;">
+          <div class="field"><label>Fill Color</label><input type="color" id="editShapeColor" value="#00fff2"></div>
+          <div class="row2">
+            <div class="field"><label>Width</label><input type="number" id="editShapeW" value="300"></div>
+            <div class="field"><label>Height</label><input type="number" id="editShapeH" value="100"></div>
+          </div>
+        </div>
+
+        <!-- Common controls -->
+        <div class="field">
+          <label>Opacity: <span id="editOpacityVal">100</span>%</label>
+          <input type="range" id="editOpacity" min="10" max="100" value="100">
+        </div>
+        <div class="field">
+          <label>Rotation: <span id="editRotVal">0</span>°</label>
+          <input type="range" id="editRotation" min="-45" max="45" value="0">
+        </div>
+        <div class="field" id="scaleField" style="display:none;">
+          <label>Scale: <span id="editScaleVal">100</span>%</label>
+          <input type="range" id="editScale" min="10" max="300" value="100">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" id="btnLayerUp">⬆ Up</button>
+          <button class="btn" id="btnLayerDown">⬇ Down</button>
+        </div>
+        <button class="btn full" style="margin-top:8px;border-color:#ff5566;color:#ff5566;" id="btnDeleteLayer">🗑 Delete Layer</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="adslot">Advertisement Space (728x90) — AdSense Slot</div>
+
+  <div class="guide">
+    <h2>📘 इस्तेमाल कैसे करें (Hindi Guide)</h2>
+    <ol>
+      <li><strong>Size चुनें:</strong> ऊपर बाईं तरफ से YouTube, Instagram या Custom size चुनें — canvas तुरंत उसी हिसाब से बदल जाएगा।</li>
+      <li><strong>Background सेट करें:</strong> Solid color, Gradient या अपनी photo upload करके background बनाएं। Brightness/Contrast/Overlay से text readable बनाएं।</li>
+      <li><strong>Text जोड़ें:</strong> दाईं तरफ box में title लिखें और "Add Text Layer" दबाएं। Canvas पर text को drag करके सही जगह रखें।</li>
+      <li><strong>Style करें:</strong> Selected text के लिए font, size, color, stroke और glow/shadow जैसे options का इस्तेमाल करें ताकि text ज़्यादा eye-catching दिखे।</li>
+      <li><strong>Logo/Image डालें:</strong> अपनी face photo, logo या PNG upload करें, फिर उसे canvas पर drag करके position और scale slider से size adjust करें।</li>
+      <li><strong>Quick Template इस्तेमाल करें:</strong> अगर समय कम है तो बाईं तरफ के templates (Bold Alert, Gaming Neon, आदि) पर क्लिक करें — background और style तुरंत सेट हो जाएगी।</li>
+      <li><strong>Layers manage करें:</strong> हर element एक "layer" है — उसे ऊपर/नीचे कर सकते हैं, delete कर सकते हैं। ज़्यादा clutter से बचें, सिर्फ ज़रूरी elements रखें।</li>
+      <li><strong>Save/Load Project:</strong> काम अधूरा है तो "Save Project" दबाएं — यह आपके browser में सुरक्षित रहेगा, फिर बाद में "Load Project" से वापस खोल सकते हैं।</li>
+      <li><strong>Download करें:</strong> जब thumbnail तैयार हो जाए, "Download PNG" पर क्लिक करके अपनी device में save करें — यह high-quality PNG होगा, सीधे YouTube/Instagram पर upload कर सकते हैं।</li>
+      <li><strong>Best Practice:</strong> बड़ा, bold text रखें (mobile पर छोटा text पढ़ना मुश्किल होता है), 3 से ज़्यादा रंग एक साथ न इस्तेमाल करें, और चेहरे के expressions वाली photo ज़्यादा clicks लाती है।</li>
+    </ol>
+  </div>
+
+  <footer>
+    IncomeAIHub Thumbnail Generator — 100% Free • Works Offline • No Signup Required • Your files never leave your browser
+  </footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('thumbCanvas');
+  const ctx = canvas.getContext('2d');
+  const canvasWrap = document.getElementById('canvasWrap');
+
+  // ---------- STATE ----------
+  let state = {
+    width: 1280, height: 720,
+    bgMode: 'color', // color | gradient | image
+    bgColor: '#0b0e18',
+    gradColor1: '#00fff2', gradColor2: '#b026ff', gradAngle: 135,
+    bgImage: null, bgFit: 'cover',
+    brightness:100, contrast:100, saturation:100, blur:0, overlay:0,
+    layers: [] // {id,type:'text'|'image'|'shape', ...}
+  };
+  let selectedId = null;
+  let history = []; let historyIdx = -1;
+  let dragState = null;
+  let idCounter = 1;
+
+  function uid(){ return 'L'+(idCounter++); }
+
+  // ---------- ASPECT / SIZE ----------
+  const aspectSelect = document.getElementById('aspectSelect');
+  const customSizeRow = document.getElementById('customSizeRow');
+  const customW = document.getElementById('customW');
+  const customH = document.getElementById('customH');
+
+  function applySize(w,h){
+    state.width = w; state.height = h;
+    canvas.width = w; canvas.height = h;
+    render();
+  }
+  aspectSelect.addEventListener('change', ()=>{
+    const v = aspectSelect.value;
+    if(v === 'custom'){
+      customSizeRow.style.display='grid';
+      applySize(parseInt(customW.value)||1280, parseInt(customH.value)||720);
+    } else {
+      customSizeRow.style.display='none';
+      const [w,h] = v.split('x').map(Number);
+      applySize(w,h);
+    }
+  });
+  customW.addEventListener('input', ()=> aspectSelect.value==='custom' && applySize(parseInt(customW.value)||1,parseInt(customH.value)||1));
+  customH.addEventListener('input', ()=> aspectSelect.value==='custom' && applySize(parseInt(customW.value)||1,parseInt(customH.value)||1));
+
+  // ---------- BACKGROUND TABS ----------
+  document.querySelectorAll('.tab-btn[data-bgtab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn[data-bgtab]').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('[data-bgpanel]').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelector(`[data-bgpanel="${btn.dataset.bgtab}"]`).classList.add('active');
+      state.bgMode = btn.dataset.bgtab;
+      render();
+    });
+  });
+
+  document.getElementById('bgColor').addEventListener('input', e=>{ state.bgColor = e.target.value; render(); });
+  document.getElementById('gradColor1').addEventListener('input', e=>{ state.gradColor1 = e.target.value; render(); });
+  document.getElementById('gradColor2').addEventListener('input', e=>{ state.gradColor2 = e.target.value; render(); });
+  document.getElementById('gradAngle').addEventListener('input', e=>{
+    state.gradAngle = +e.target.value;
+    document.getElementById('gradAngleVal').textContent = e.target.value;
+    render();
+  });
+  document.getElementById('bgFitMode').addEventListener('change', e=>{ state.bgFit = e.target.value; render(); });
+
+  document.getElementById('bgImageInput').addEventListener('change', e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const img = new Image();
+    img.onload = ()=>{ state.bgImage = img; render(); saveHistory(); };
+    img.src = URL.createObjectURL(file);
+  });
+
+  function bindRange(id, prop, labelId, suffix){
+    document.getElementById(id).addEventListener('input', e=>{
+      state[prop] = +e.target.value;
+      document.getElementById(labelId).textContent = e.target.value;
+      render();
+    });
+  }
+  bindRange('brightRange','brightness','brightVal');
+  bindRange('contrastRange','contrast','contrastVal');
+  bindRange('satRange','saturation','satVal');
+  bindRange('blurRange','blur','blurVal');
+  bindRange('overlayRange','overlay','overlayVal');
+
+  // ---------- TEMPLATES ----------
+  const templates = {
+    alert:{ bgMode:'gradient', gradColor1:'#ff0033', gradColor2:'#1a0005', gradAngle:135,
+      text:{content:'BREAKING NEWS', color:'#ffffff', font:'Impact', size:110, stroke:'#000000', strokeW:6, shadow:true} },
+    neon:{ bgMode:'gradient', gradColor1:'#1a0033', gradColor2:'#000000', gradAngle:160,
+      text:{content:'EPIC GAMEPLAY', color:'#00fff2', font:'Orbitron', size:90, stroke:'#b026ff', strokeW:3, shadow:true} },
+    clean:{ bgMode:'color', bgColor:'#f4f6fb',
+      text:{content:'HOW TO GET STARTED', color:'#111827', font:'Rajdhani', size:80, stroke:'#ffffff', strokeW:0, shadow:false} },
+    vlog:{ bgMode:'gradient', gradColor1:'#ff9a3c', gradColor2:'#ff3c78', gradAngle:135,
+      text:{content:'MY DAY VLOG ☀️', color:'#ffffff', font:'Georgia', size:85, stroke:'#000000', strokeW:4, shadow:true} }
+  };
+  document.querySelectorAll('.chip[data-tpl]').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const t = templates[chip.dataset.tpl];
+      state.bgMode = t.bgMode;
+      if(t.bgColor) state.bgColor = t.bgColor;
+      if(t.gradColor1){ state.gradColor1=t.gradColor1; state.gradColor2=t.gradColor2; state.gradAngle=t.gradAngle; }
+      document.querySelectorAll('.tab-btn[data-bgtab]').forEach(b=>b.classList.toggle('active', b.dataset.bgtab===t.bgMode));
+      document.querySelectorAll('[data-bgpanel]').forEach(p=>p.classList.toggle('active', p.dataset.bgpanel===t.bgMode));
+
+      const layer = {
+        id: uid(), type:'text', content:t.text.content,
+        x: state.width/2, y: state.height/2,
+        font: t.text.font, size:t.text.size, color:t.text.color,
+        strokeColor:t.text.stroke, strokeWidth:t.text.strokeW,
+        bold:true, italic:false, shadow:t.text.shadow,
+        align:'center', opacity:100, rotation:0
+      };
+      state.layers.push(layer);
+      selectedId = layer.id;
+      render(); refreshLayersList(); openEditPanel();
+      saveHistory();
+    });
+  });
+
+  // ---------- LAYERS: ADD TEXT ----------
+  document.getElementById('btnAddText').addEventListener('click', ()=>{
+    const content = document.getElementById('newTextInput').value.trim() || 'YOUR TITLE HERE';
+    const layer = {
+      id: uid(), type:'text', content,
+      x: state.width/2, y: state.height/2,
+      font:'Orbitron', size:80, color:'#00fff2',
+      strokeColor:'#000000', strokeWidth:0,
+      bold:false, italic:false, shadow:false,
+      align:'center', opacity:100, rotation:0
+    };
+    state.layers.push(layer);
+    selectedId = layer.id;
+    render(); refreshLayersList(); openEditPanel();
+    saveHistory();
+  });
+
+  // ---------- LAYERS: ADD IMAGE ----------
+  document.getElementById('imgLayerInput').addEventListener('change', e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const img = new Image();
+    img.onload = ()=>{
+      const maxDim = Math.min(state.width, state.height) * 0.4;
+      const ratio = img.width / img.height;
+      let w = maxDim, h = maxDim / ratio;
+      if(h > maxDim){ h = maxDim; w = maxDim * ratio; }
+      const layer = {
+        id: uid(), type:'image', img,
+        x: state.width/2, y: state.height/2,
+        w, h, opacity:100, rotation:0, scale:100
+      };
+      state.layers.push(layer);
+      selectedId = layer.id;
+      render(); refreshLayersList(); openEditPanel();
+      saveHistory();
+    };
+    img.src = URL.createObjectURL(file);
+  });
+
+  // ---------- SHAPES ----------
+  document.querySelectorAll('[data-shape]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const type = btn.dataset.shape;
+      const layer = {
+        id: uid(), type:'shape', shapeType:type,
+        x: state.width/2, y: state.height/2,
+        w:300, h: type==='circle'?200:100,
+        color:'#00fff2', opacity:60, rotation:0
+      };
+      state.layers.push(layer);
+      selectedId = layer.id;
+      render(); refreshLayersList(); openEditPanel();
+      saveHistory();
+    });
+  });
+
+  // ---------- EMOJI ----------
+  const emojis = ['🔥','⚡','💥','🚀','😱','😂','❤️','⭐','✅','❌','🎯','💰','🎉','👑','😎','🤯','📈','🆕','⏰','🎁','🏆','💡','🎮','📢'];
+  const emojiGrid = document.getElementById('emojiGrid');
+  emojis.forEach(em=>{
+    const b = document.createElement('button');
+    b.textContent = em;
+    b.addEventListener('click', ()=>{
+      const layer = {
+        id: uid(), type:'text', content: em,
+        x: state.width/2, y: state.height/2,
+        font:'Arial', size:120, color:'#ffffff',
+        strokeColor:'#000000', strokeWidth:0,
+        bold:false, italic:false, shadow:false,
+        align:'center', opacity:100, rotation:0, isEmoji:true
+      };
+      state.layers.push(layer);
+      selectedId = layer.id;
+      render(); refreshLayersList(); openEditPanel();
+      saveHistory();
+    });
+    emojiGrid.appendChild(b);
+  });
+
+  // ---------- RENDER ----------
+  function drawBackground(){
+    ctx.save();
+    ctx.filter = `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) blur(${state.blur}px)`;
+    if(state.bgMode === 'color'){
+      ctx.fillStyle = state.bgColor;
+      ctx.fillRect(0,0,state.width,state.height);
+    } else if(state.bgMode === 'gradient'){
+      const rad = state.gradAngle * Math.PI/180;
+      const x1 = state.width/2 - Math.cos(rad)*state.width/2;
+      const y1 = state.height/2 - Math.sin(rad)*state.height/2;
+      const x2 = state.width/2 + Math.cos(rad)*state.width/2;
+      const y2 = state.height/2 + Math.sin(rad)*state.height/2;
+      const grad = ctx.createLinearGradient(x1,y1,x2,y2);
+      grad.addColorStop(0, state.gradColor1);
+      grad.addColorStop(1, state.gradColor2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,state.width,state.height);
+    } else if(state.bgMode === 'image' && state.bgImage){
+      const img = state.bgImage;
+      const cw = state.width, ch = state.height;
+      const ir = img.width/img.height, cr = cw/ch;
+      let dw,dh,dx,dy;
+      if(state.bgFit === 'stretch'){ dw=cw; dh=ch; dx=0; dy=0; }
+      else if(state.bgFit === 'contain'){
+        if(ir > cr){ dw=cw; dh=cw/ir; } else { dh=ch; dw=ch*ir; }
+        dx=(cw-dw)/2; dy=(ch-dh)/2;
+        ctx.fillStyle = state.bgColor; ctx.fillRect(0,0,cw,ch);
+      } else { // cover
+        if(ir > cr){ dh=ch; dw=ch*ir; } else { dw=cw; dh=cw/ir; }
+        dx=(cw-dw)/2; dy=(ch-dh)/2;
+      }
+      ctx.drawImage(img,dx,dy,dw,dh);
+    } else {
+      ctx.fillStyle = state.bgColor;
+      ctx.fillRect(0,0,state.width,state.height);
+    }
+    ctx.restore();
+
+    if(state.overlay > 0){
+      ctx.save();
+      ctx.fillStyle = `rgba(0,0,0,${state.overlay/100})`;
+      ctx.fillRect(0,0,state.width,state.height);
+      ctx.restore();
+    }
+  }
+
+  function getTextMetrics(layer){
+    let fontStr = `${layer.italic?'italic ':''}${layer.bold?'bold ':''}${layer.size}px ${layer.font}`;
+    ctx.font = fontStr;
+    const w = ctx.measureText(layer.content).width;
+    const h = layer.size * 1.2;
+    return {w,h,fontStr};
+  }
+
+  function drawLayer(layer){
+    ctx.save();
+    ctx.globalAlpha = (layer.opacity ?? 100)/100;
+    ctx.translate(layer.x, layer.y);
+    ctx.rotate((layer.rotation||0) * Math.PI/180);
+
+    if(layer.type === 'text'){
+      const {fontStr} = getTextMetrics(layer);
+      ctx.font = fontStr;
+      ctx.textAlign = layer.align || 'center';
+      ctx.textBaseline = 'middle';
+      if(layer.shadow){
+        ctx.shadowColor = layer.color;
+        ctx.shadowBlur = 25;
+      }
+      if(layer.strokeWidth > 0){
+        ctx.lineWidth = layer.strokeWidth;
+        ctx.strokeStyle = layer.strokeColor;
+        ctx.strokeText(layer.content, 0, 0);
+      }
+      ctx.fillStyle = layer.color;
+      ctx.fillText(layer.content, 0, 0);
+    } else if(layer.type === 'image'){
+      const scale = (layer.scale||100)/100;
+      const w = layer.w*scale, h = layer.h*scale;
+      ctx.drawImage(layer.img, -w/2, -h/2, w, h);
+    } else if(layer.type === 'shape'){
+      ctx.fillStyle = layer.color;
+      if(layer.shapeType === 'circle'){
+        ctx.beginPath();
+        ctx.ellipse(0,0,layer.w/2,layer.h/2,0,0,Math.PI*2);
+        ctx.fill();
+      } else if(layer.shapeType === 'ribbon'){
+        ctx.fillRect(-layer.w/2, -layer.h/2, layer.w, layer.h);
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(-layer.w/2, layer.h/2 - 6, layer.w, 6);
+      } else {
+        ctx.fillRect(-layer.w/2, -layer.h/2, layer.w, layer.h);
+      }
+    }
+    ctx.restore();
+
+    if(layer.id === selectedId){
+      ctx.save();
+      ctx.translate(layer.x, layer.y);
+      ctx.rotate((layer.rotation||0) * Math.PI/180);
+      ctx.strokeStyle = '#00fff2';
+      ctx.setLineDash([6,4]);
+      ctx.lineWidth = 2;
+      const b = layerBounds(layer);
+      ctx.strokeRect(-b.w/2 - 8, -b.h/2 - 8, b.w+16, b.h+16);
+      ctx.restore();
+    }
+  }
+
+  function layerBounds(layer){
+    if(layer.type === 'text'){
+      const m = getTextMetrics(layer);
+      return {w:m.w, h:m.h};
+    } else if(layer.type === 'image'){
+      const scale = (layer.scale||100)/100;
+      return {w:layer.w*scale, h:layer.h*scale};
+    } else {
+      return {w:layer.w, h:layer.h};
+    }
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawBackground();
+    state.layers.forEach(drawLayer);
+  }
+
+  // ---------- LAYERS LIST ----------
+  function refreshLayersList(){
+    const list = document.getElementById('layersList');
+    list.innerHTML = '';
+    if(state.layers.length === 0){
+      list.innerHTML = '<div class="hint">No layers yet. Add text, image or shapes →</div>';
+      return;
+    }
+    [...state.layers].reverse().forEach(layer=>{
+      const item = document.createElement('div');
+      item.className = 'layer-item' + (layer.id===selectedId ? ' selected':'');
+      const icon = layer.type==='text' ? '🔤' : layer.type==='image' ? '🖼️' : '⬛';
+      const label = layer.type==='text' ? layer.content : (layer.type==='image' ? 'Image Layer' : 'Shape: '+layer.shapeType);
+      item.innerHTML = `<span>${icon} ${label}</span><button title="Delete">✕</button>`;
+      item.addEventListener('click', (e)=>{
+        if(e.target.tagName === 'BUTTON') return;
+        selectedId = layer.id; render(); refreshLayersList(); openEditPanel();
+      });
+      item.querySelector('button').addEventListener('click', ()=>{
+        deleteLayer(layer.id);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function deleteLayer(id){
+    state.layers = state.layers.filter(l=>l.id!==id);
+    if(selectedId === id) selectedId = null;
+    render(); refreshLayersList(); closeEditPanel();
+    saveHistory();
+  }
+
+  // ---------- EDIT PANEL ----------
+  function getSelected(){ return state.layers.find(l=>l.id===selectedId); }
+
+  function openEditPanel(){
+    const layer = getSelected();
+    document.getElementById('noSelectionMsg').style.display = layer ? 'none':'block';
+    document.getElementById('editPanel').style.display = layer ? 'block':'none';
+    if(!layer) return;
+
+    document.getElementById('textControls').style.display = layer.type==='text' ? 'block':'none';
+    document.getElementById('shapeControls').style.display = layer.type==='shape' ? 'block':'none';
+    document.getElementById('scaleField').style.display = layer.type==='image' ? 'block':'none';
+
+    if(layer.type === 'text'){
+      document.getElementById('editTextContent').value = layer.content;
+      document.getElementById('editFont').value = layer.font;
+      document.getElementById('editFontSize').value = layer.size;
+      document.getElementById('editTextColor').value = layer.color;
+      document.getElementById('editStrokeColor').value = layer.strokeColor;
+      document.getElementById('editStrokeWidth').value = layer.strokeWidth;
+      document.getElementById('editAlign').value = layer.align;
+      document.getElementById('toggleBold').style.color = layer.bold ? 'var(--green)':'var(--cyan)';
+      document.getElementById('toggleItalic').style.color = layer.italic ? 'var(--green)':'var(--cyan)';
+      document.getElementById('toggleShadow').style.color = layer.shadow ? 'var(--green)':'var(--cyan)';
+    }
+    if(layer.type === 'shape'){
+      document.getElementById('editShapeColor').value = layer.color;
+      document.getElementById('editShapeW').value = layer.w;
+      document.getElementById('editShapeH').value = layer.h;
+    }
+    if(layer.type === 'image'){
+      document.getElementById('editScale').value = layer.scale||100;
+      document.getElementById('editScaleVal').textContent = layer.scale||100;
+    }
+    document.getElementById('editOpacity').value = layer.opacity;
+    document.getElementById('editOpacityVal').textContent = layer.opacity;
+    document.getElementById('editRotation').value = layer.rotation;
+    document.getElementById('editRotVal').textContent = layer.rotation;
+  }
+
+  function closeEditPanel(){
+    document.getElementById('noSelectionMsg').style.display = 'block';
+    document.getElementById('editPanel').style.display = 'none';
+  }
+
+  // text control bindings
+  document.getElementById('editTextContent').addEventListener('input', e=>{
+    const l = getSelected(); if(!l) return; l.content = e.target.value; render(); refreshLayersList();
+  });
+  document.getElementById('editFont').addEventListener('change', e=>{ const l=getSelected(); if(l){l.font=e.target.value; render();} });
+  document.getElementById('editFontSize').addEventListener('input', e=>{ const l=getSelected(); if(l){l.size=+e.target.value; render();} });
+  document.getElementById('editTextColor').addEventListener('input', e=>{ const l=getSelected(); if(l){l.color=e.target.value; render();} });
+  document.getElementById('editStrokeColor').addEventListener('input', e=>{ const l=getSelected(); if(l){l.strokeColor=e.target.value; render();} });
+  document.getElementById('editStrokeWidth').addEventListener('input', e=>{ const l=getSelected(); if(l){l.strokeWidth=+e.target.value; render();} });
+  document.getElementById('editAlign').addEventListener('change', e=>{ const l=getSelected(); if(l){l.align=e.target.value; render();} });
+  document.getElementById('toggleBold').addEventListener('click', ()=>{ const l=getSelected(); if(l){l.bold=!l.bold; render(); openEditPanel();} });
+  document.getElementById('toggleItalic').addEventListener('click', ()=>{ const l=getSelected(); if(l){l.italic=!l.italic; render(); openEditPanel();} });
+  document.getElementById('toggleShadow').addEventListener('click', ()=>{ const l=getSelected(); if(l){l.shadow=!l.shadow; render(); openEditPanel();} });
+
+  document.getElementById('editShapeColor').addEventListener('input', e=>{ const l=getSelected(); if(l){l.color=e.target.value; render();} });
+  document.getElementById('editShapeW').addEventListener('input', e=>{ const l=getSelected(); if(l){l.w=+e.target.value; render();} });
+  document.getElementById('editShapeH').addEventListener('input', e=>{ const l=getSelected(); if(l){l.h=+e.target.value; render();} });
+
+  document.getElementById('editOpacity').addEventListener('input', e=>{
+    const l=getSelected(); if(l){l.opacity=+e.target.value; document.getElementById('editOpacityVal').textContent=e.target.value; render();}
+  });
+  document.getElementById('editRotation').addEventListener('input', e=>{
+    const l=getSelected(); if(l){l.rotation=+e.target.value; document.getElementById('editRotVal').textContent=e.target.value; render();}
+  });
+  document.getElementById('editScale').addEventListener('input', e=>{
+    const l=getSelected(); if(l){l.scale=+e.target.value; document.getElementById('editScaleVal').textContent=e.target.value; render();}
+  });
+
+  document.getElementById('btnLayerUp').addEventListener('click', ()=>{
+    const idx = state.layers.findIndex(l=>l.id===selectedId);
+    if(idx < state.layers.length-1){
+      [state.layers[idx], state.layers[idx+1]] = [state.layers[idx+1], state.layers[idx]];
+      render(); refreshLayersList(); saveHistory();
+    }
+  });
+  document.getElementById('btnLayerDown').addEventListener('click', ()=>{
+    const idx = state.layers.findIndex(l=>l.id===selectedId);
+    if(idx > 0){
+      [state.layers[idx], state.layers[idx-1]] = [state.layers[idx-1], state.layers[idx]];
+      render(); refreshLayersList(); saveHistory();
+    }
+  });
+  document.getElementById('btnDeleteLayer').addEventListener('click', ()=>{
+    if(selectedId) deleteLayer(selectedId);
+  });
+
+  document.getElementById('btnDeselect').addEventListener('click', ()=>{
+    selectedId = null; render(); refreshLayersList(); closeEditPanel();
+  });
+
+  // ---------- CANVAS DRAG / SELECT ----------
+  function getCanvasPos(evt){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    return { x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY };
+  }
+
+  function hitTest(pos){
+    for(let i=state.layers.length-1; i>=0; i--){
+      const layer = state.layers[i];
+      const b = layerBounds(layer);
+      const dx = pos.x - layer.x, dy = pos.y - layer.y;
+      const rad = -(layer.rotation||0) * Math.PI/180;
+      const rx = dx*Math.cos(rad) - dy*Math.sin(rad);
+      const ry = dx*Math.sin(rad) + dy*Math.cos(rad);
+      if(Math.abs(rx) <= b.w/2 && Math.abs(ry) <= b.h/2) return layer;
+    }
+    return null;
+  }
+
+  function startDrag(evt){
+    const pos = getCanvasPos(evt);
+    const layer = hitTest(pos);
+    if(layer){
+      selectedId = layer.id;
+      dragState = { id:layer.id, offX: pos.x-layer.x, offY: pos.y-layer.y };
+    } else {
+      selectedId = null;
+    }
+    render(); refreshLayersList(); openEditPanel();
+  }
+  function moveDrag(evt){
+    if(!dragState) return;
+    evt.preventDefault();
+    const pos = getCanvasPos(evt);
+    const layer = state.layers.find(l=>l.id===dragState.id);
+    if(!layer) return;
+    layer.x = Math.max(0, Math.min(state.width, pos.x - dragState.offX));
+    layer.y = Math.max(0, Math.min(state.height, pos.y - dragState.offY));
+    render();
+  }
+  function endDrag(){
+    if(dragState) saveHistory();
+    dragState = null;
+  }
+
+  canvas.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('mouseup', endDrag);
+  canvas.addEventListener('touchstart', startDrag, {passive:true});
+  window.addEventListener('touchmove', moveDrag, {passive:false});
+  window.addEventListener('touchend', endDrag);
+
+  // ---------- UNDO / REDO ----------
+  function serializeState(){
+    return JSON.stringify(state, (k,v)=>{
+      if(k==='img') return v ? v.src : null;
+      if(k==='bgImage') return v ? v.src : null;
+      return v;
+    });
+  }
+  function saveHistory(){
+    history = history.slice(0, historyIdx+1);
+    history.push(serializeState());
+    historyIdx = history.length-1;
+    if(history.length > 40){ history.shift(); historyIdx--; }
+  }
+  function restoreFromString(str, cb){
+    const parsed = JSON.parse(str);
+    let pending = 0, done = ()=>{ if(pending===0) cb(); };
+    if(parsed.bgImage){
+      pending++;
+      const img = new Image();
+      img.onload = ()=>{ parsed.bgImage = img; pending--; done(); };
+      img.src = parsed.bgImage;
+    }
+    parsed.layers.forEach(l=>{
+      if(l.type==='image' && l.img){
+        pending++;
+        const img = new Image();
+        img.onload = ()=>{ l.img = img; pending--; done(); };
+        img.src = l.img;
+      }
+    });
+    if(pending===0) cb();
+    return parsed;
+  }
+  document.getElementById('btnUndo').addEventListener('click', ()=>{
+    if(historyIdx > 0){
+      historyIdx--;
+      const parsed = restoreFromString(history[historyIdx], ()=>{ state = parsed; render(); refreshLayersList(); closeEditPanel(); });
+    }
+  });
+  document.getElementById('btnRedo').addEventListener('click', ()=>{
+    if(historyIdx < history.length-1){
+      historyIdx++;
+      const parsed = restoreFromString(history[historyIdx], ()=>{ state = parsed; render(); refreshLayersList(); closeEditPanel(); });
+    }
+  });
+
+  // ---------- DOWNLOAD ----------
+  document.getElementById('btnDownload').addEventListener('click', ()=>{
+    selectedId = null; render(); refreshLayersList(); closeEditPanel();
+    const link = document.createElement('a');
+    link.download = 'thumbnail-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  // ---------- SAVE / LOAD PROJECT (localStorage) ----------
+  document.getElementById('btnSaveProject').addEventListener('click', ()=>{
+    const name = prompt('Project name / प्रोजेक्ट का नाम:', 'my-thumbnail');
+    if(!name) return;
+    try{
+      localStorage.setItem('thumbgen_' + name, serializeState());
+      alert('Saved! / सेव हो गया ✅');
+    }catch(e){ alert('Storage error — try a smaller image.'); }
+  });
+  document.getElementById('btnLoadProject').addEventListener('click', ()=>{
+    const keys = Object.keys(localStorage).filter(k=>k.startsWith('thumbgen_'));
+    if(keys.length===0){ alert('No saved projects found.'); return; }
+    const names = keys.map(k=>k.replace('thumbgen_',''));
+    const choice = prompt('Load which project?\n' + names.join('\n'));
+    if(!choice) return;
+    const key = 'thumbgen_' + choice;
+    const str = localStorage.getItem(key);
+    if(!str){ alert('Not found.'); return; }
+    restoreFromString(str, ()=>{
+      state = JSON.parse(str, ()=>{});
+      const parsed = JSON.parse(str);
+      // rebuild image objects
+      let pending=0; const done=()=>{ if(pending===0){ state=parsed; render(); refreshLayersList(); closeEditPanel(); syncControlsFromState(); saveHistory(); } };
+      if(parsed.bgImage){ pending++; const img=new Image(); img.onload=()=>{parsed.bgImage=img; pending--; done();}; img.src=parsed.bgImage; }
+      parsed.layers.forEach(l=>{ if(l.type==='image'&&l.img){ pending++; const img=new Image(); img.onload=()=>{l.img=img; pending--; done();}; img.src=l.img; } });
+      if(pending===0) done();
+    });
+  });
+
+  function syncControlsFromState(){
+    document.getElementById('bgColor').value = state.bgColor;
+    document.getElementById('gradColor1').value = state.gradColor1;
+    document.getElementById('gradColor2').value = state.gradColor2;
+    document.getElementById('gradAngle').value = state.gradAngle;
+    document.getElementById('brightRange').value = state.brightness;
+    document.getElementById('contrastRange').value = state.contrast;
+    document.getElementById('satRange').value = state.saturation;
+    document.getElementById('blurRange').value = state.blur;
+    document.getElementById('overlayRange').value = state.overlay;
+    canvas.width = state.width; canvas.height = state.height;
+  }
+
+  document.getElementById('btnClearAll').addEventListener('click', ()=>{
+    if(!confirm('Clear everything? / सब कुछ हटा दें?')) return;
+    state.layers = [];
+    state.bgImage = null;
+    selectedId = null;
+    render(); refreshLayersList(); closeEditPanel(); saveHistory();
+  });
+
+  // ---------- INIT ----------
+  applySize(1280,720);
+  refreshLayersList();
+  saveHistory();
+})();
+</script>
+</body>
+</html>
