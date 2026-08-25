@@ -1,0 +1,2 @@
+# thumbnail-generator
+thumbnail-generator
